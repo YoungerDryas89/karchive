@@ -6,7 +6,6 @@
 
 #include "kzstdfilter.h"
 #include "loggingcategory.h"
-
 #include <QIODevice>
 
 #if HAVE_ZSTD_SUPPORT
@@ -26,6 +25,7 @@ public:
     bool isInitialized = false;
     ZSTD_inBuffer inBuffer;
     ZSTD_outBuffer outBuffer;
+    int windowLogMaxValue{-1};
 };
 
 KZstdFilter::KZstdFilter()
@@ -110,6 +110,13 @@ int KZstdFilter::outBufferAvailable() const
 
 KZstdFilter::Result KZstdFilter::uncompress()
 {
+    if(d->windowLogMaxValue != -1){
+        const size_t result = ZSTD_DCtx_setParameter(d->dStream, ZSTD_d_windowLogMax, d->windowLogMaxValue);
+        if(ZSTD_isError(result)){
+            qCWarning(KArchiveLog) << "ZSTD_DCtx_setParameter returned " << result << ZSTD_getErrorName(result);
+            return KFilterBase::Error;
+        }
+    }
     // qCDebug(KArchiveLog) << "Calling ZSTD_decompressStream with avail_in=" << inBufferAvailable() << " avail_out=" << outBufferAvailable();
     const size_t result = ZSTD_decompressStream(d->dStream, &d->outBuffer, &d->inBuffer);
     if (ZSTD_isError(result)) {
@@ -129,6 +136,10 @@ KZstdFilter::Result KZstdFilter::compress(bool finish)
     }
 
     return finish && result == 0 ? KFilterBase::End : KFilterBase::Ok;
+}
+
+void KZstdFilter::setMaxWindowLog(int value){
+    d->windowLogMaxValue = value;
 }
 
 #endif
