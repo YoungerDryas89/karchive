@@ -128,6 +128,15 @@ public:
      */
     QFileDevice::FileError error() const;
 
+    /**
+     * For handling with zstd compressed files only!
+     * Sets a memory budget for decompression streaming.
+     * Values must be expressed as a power of 2
+     *
+     * @param value
+     */
+    void setMaxWindowLog(int value);
+
 protected:
     friend class K7Zip;
 

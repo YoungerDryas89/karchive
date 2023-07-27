@@ -514,4 +514,12 @@ KFilterBase *KCompressionDevice::filterBase()
     return d->filter;
 }
 
+void KCompressionDevice::setMaxWindowLog(int value){
+    if(d->type != CompressionType::Zstd)
+        return;
+
+    auto filter = static_cast<KZstdFilter*>(d->filter);
+    filter->setMaxWindowLog(value);
+}
+
 #include "moc_kcompressiondevice.cpp"
