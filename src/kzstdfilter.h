@@ -38,7 +38,7 @@ public:
         return true;
     }
 
-    void setMaxWindowLog(int value);
+    Result setMaxWindowLog(int value);
     void setOutBuffer(char *data, uint maxlen) override;
     void setInBuffer(const char *data, uint size) override;
     int inBufferAvailable() const override;

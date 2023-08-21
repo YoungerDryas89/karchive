@@ -110,13 +110,6 @@ int KZstdFilter::outBufferAvailable() const
 
 KZstdFilter::Result KZstdFilter::uncompress()
 {
-    if(d->windowLogMaxValue != -1){
-        const size_t result = ZSTD_DCtx_setParameter(d->dStream, ZSTD_d_windowLogMax, d->windowLogMaxValue);
-        if(ZSTD_isError(result)){
-            qCWarning(KArchiveLog) << "ZSTD_DCtx_setParameter returned " << result << ZSTD_getErrorName(result);
-            return KFilterBase::Error;
-        }
-    }
     // qCDebug(KArchiveLog) << "Calling ZSTD_decompressStream with avail_in=" << inBufferAvailable() << " avail_out=" << outBufferAvailable();
     const size_t result = ZSTD_decompressStream(d->dStream, &d->outBuffer, &d->inBuffer);
     if (ZSTD_isError(result)) {
@@ -137,9 +130,14 @@ KZstdFilter::Result KZstdFilter::compress(bool finish)
 
     return finish && result == 0 ? KFilterBase::End : KFilterBase::Ok;
 }
-
-void KZstdFilter::setMaxWindowLog(int value){
-    d->windowLogMaxValue = value;
+KZstdFilter::Result KZstdFilter::setMaxWindowLog(int value)
+{
+        const size_t result = ZSTD_DCtx_setParameter(d->dStream, ZSTD_d_windowLogMax, value);
+        if (ZSTD_isError(result)) {
+            qCWarning(KArchiveLog) << "ZSTD_DCtx_setParameter returned " << result << ZSTD_getErrorName(result);
+            return KFilterBase::Error;
+        }
+        return KFilterBase::Ok;
 }
 
 #endif
